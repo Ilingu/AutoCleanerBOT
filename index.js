@@ -20,7 +20,6 @@ const client = new Client({
 config({
   path: __dirname + "/.env",
 });
-
 // Fn
 const POSTMessage = (AllMessage, channel, MessageID, guild, TimeImgDelete) => {
   // 172800000 -> Ms of 2days
@@ -148,6 +147,17 @@ const getApp = (guildID) => {
   return app;
 };
 
+const createAPIMessage = async (interaction, content) => {
+  const { data, files } = await APIMessage.create(
+    client.channels.resolve(interaction.channel_id),
+    content
+  )
+    .resolveData()
+    .resolveFiles();
+
+  return { ...data, files };
+};
+
 const replyToCommand = async (interaction, replyText) => {
   let data = {
     content: replyText,
@@ -228,11 +238,7 @@ client.on("ready", async () => {
     if (command === "ping") {
       const embed = new MessageEmbed()
         .setColor(0xffc300)
-        .setTitle(`🏓 ${message.author.username}'s ping`)
-        .addField(
-          "⏳__You:__",
-          `**${Date.now() - message.createdTimestamp}**ms`
-        )
+        .setTitle(`🏓pong`)
         .addField("⏱__BOT__", `*${Math.round(client.ws.ping)}*ms`);
       replyToCommand(interaction, embed);
     } else if (command === "help") {
@@ -412,9 +418,11 @@ client.on("message", (message) => {
 });
 
 client.on("messageDelete", (message) => {
+  // Don't Work
   const guild = message.guild.id,
     channel = message.channel.id,
     MessageID = message.id;
+  console.log(message.attachments.size);
   if (message.attachments.size > 0) {
     UserDeleteImg(guild, channel, MessageID);
   } else {
