@@ -236,6 +236,7 @@ client.on("ready", async () => {
         .addField("⏱__BOT__", `*${Math.round(client.ws.ping)}*ms`);
       replyToCommand(interaction, embed);
     } else if (command === "help") {
+      const prefix = "ac!";
       const Embed = new MessageEmbed()
         .setColor(0xffc300)
         .setTitle("**How to use AutoCleaner ? | ac!help**")
