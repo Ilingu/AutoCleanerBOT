@@ -198,6 +198,15 @@ client.on("message", (message) => {
   const prefix = "ac!";
   const args = message.content.slice(prefix.length).trim().split(/ +/g);
   const cmd = args.shift().toLowerCase();
+  if (!message.guild) {
+    // DM
+    if (message.author.bot) return;
+    if (cmd === "invite")
+      return message.reply(
+        `Hello ${message.author.username} 🖐\n Here you invite url: https://discord.com/api/oauth2/authorize?client_id=831828766245912596&permissions=8&scope=bot \n`
+      );
+    return;
+  }
   // Features
   const guild = message.guild.id,
     channel = message.channel.id,
@@ -212,6 +221,10 @@ client.on("message", (message) => {
 
   if (cmd === "time") {
     if (message.deletable) message.delete({ timeout: 5000 });
+    if (!message.member.hasPermission("ADMINISTRATOR"))
+      return message
+        .reply("__Failed:__ You aren't an Administrator of this server.")
+        .then((m) => m.delete({ timeout: 5000 }));
 
     if (args.length < 1)
       return message
@@ -220,8 +233,8 @@ client.on("message", (message) => {
 
     const Time = args[0].toLowerCase();
 
-    const SendNewTime = (Time) => {
-      NewTime(Time, guild, (success) =>
+    const SendNewTime = (TimeMS) => {
+      NewTime(TimeMS, guild, (success) =>
         success
           ? message.channel.send(`✅Time changed to ${Time}`)
           : message.channel.send(
@@ -261,13 +274,20 @@ client.on("message", (message) => {
       .setColor(0xffc300)
       .setTitle("**How to use AutoCleaner ? | ac!help**")
       .setDescription(
-        `- __prefix:__ ${prefix}\n- **${prefix}time <Hours/Day(s)>**\n=> Edit time before the bot deletes images\n=> __Example:__ ${prefix}time 2d / ${prefix}time 22h\n- **${prefix}help**\n=> See all my commands\n- **${prefix}invite**\n=>- Url for adding this bot into your server`
+        `- __prefix:__ ${prefix}\n- **${prefix}time <Hours/Day(s)>**\n=> Edit time before the bot deletes images\n=> __Example:__ ${prefix}time 2d / ${prefix}time 22h\n- **${prefix}help**\n=> See all my commands\n- **${prefix}invite**\n=>- Url for adding this bot into your server\n- **${prefix}ping**\n=>- Returns your ping (in ms)`
       )
       .setTimestamp()
       .setAuthor(message.author.username, message.author.displayAvatarURL())
       .setFooter(client.user.username, client.user.displayAvatarURL());
 
     return message.reply(Embed);
+  } else if (cmd === "ping") {
+    if (message.deletable) message.delete({ timeout: 5000 });
+    const Embed = new MessageEmbed()
+      .setColor(0xffc300)
+      .setTitle(`🏓 ${message.author.username}'s ping`)
+      .addField("⏳__You:__", `**${Date.now() - message.createdTimestamp}**ms`)
+      .addField("⏱__BOT__", `*${Math.round(client.ws.ping)}*ms`);
   } else {
     if (message.deletable) message.delete();
     return message
