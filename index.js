@@ -274,9 +274,7 @@ client.on("ready", async () => {
 });
 
 client.on("guildCreate", async (gData) => {
-  const channel = client.channels.cache.find(
-    (channel) => channel.type === "text"
-  );
+  const channel = client.channels.cache.find((ch) => ch.type === "text");
   channel.send(
     new MessageEmbed()
       .setColor(0xffc300)
@@ -302,10 +300,6 @@ client.on("guildCreate", async (gData) => {
 });
 
 client.on("guildDelete", async (gData) => {
-  const channel = client.channels.cache.find(
-    (channel) => channel.type === "text"
-  );
-  channel.send("😢 See you later (I hope...) !");
   console.log(
     `Connection Lost with ${gData.name} guild (GuildID: ${gData.id})`
   );
