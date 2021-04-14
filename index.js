@@ -161,7 +161,7 @@ client.on("ready", () => {
 });
 
 client.on("guildCreate", async (gData) => {
-  const channel = guild.channels.cache.find(
+  const channel = client.channels.cache.find(
     (channel) => channel.type === "text"
   );
   channel.send(
