@@ -188,19 +188,19 @@ client.on("ready", async () => {
   /* "/" commands */
   // Create
   client.guilds.cache.forEach(async (guildCommandsID) => {
-    await getApp(guildCommandsID).commands.post({
+    await getApp(guildCommandsID.id).commands.post({
       data: {
         name: "ping",
         description: "Returns your ping (in ms)",
       },
     });
-    await getApp(guildCommandsID).commands.post({
+    await getApp(guildCommandsID.id).commands.post({
       data: {
         name: "invite",
         description: "Get invite link of this bot",
       },
     });
-    await getApp(guildCommandsID).commands.post({
+    await getApp(guildCommandsID.id).commands.post({
       data: {
         name: "help",
         description: "All bot commands",
