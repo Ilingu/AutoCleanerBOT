@@ -288,12 +288,11 @@ client.on("message", (message) => {
       .setTitle(`🏓 ${message.author.username}'s ping`)
       .addField("⏳__You:__", `**${Date.now() - message.createdTimestamp}**ms`)
       .addField("⏱__BOT__", `*${Math.round(client.ws.ping)}*ms`);
+    message.channel.send(Embed);
   } else {
     if (message.deletable) message.delete();
     return message
-      .reply(
-        `❌<@${message.author.id}> this command does not exist, try **ac!help**`
-      )
+      .reply(`❌ this command does not exist, try **ac!help**`)
       .then((m) => m.delete({ timeout: 10000 }));
   }
 });
