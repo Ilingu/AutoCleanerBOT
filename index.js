@@ -1,4 +1,4 @@
-const { Client, MessageEmbed } = require("discord.js");
+const { Client, MessageEmbed, APIMessage } = require("discord.js");
 const { config } = require("dotenv");
 const schedule = require("node-schedule");
 const firebase = require("firebase/app");
@@ -62,6 +62,7 @@ const UserDeleteImg = (guild, channel, MessageID) => {
         const Data = doc.data().messageImageToSuppr;
         if (Data) {
           Data.forEach((Msg, i) => {
+            console.log(MessageID, Msg.id, channel, Msg.channel);
             if (Msg.id === MessageID && Msg.channel === channel) {
               Data.splice(i, 1);
             }
@@ -252,6 +253,11 @@ client.on("ready", async () => {
         .setTimestamp()
         .setFooter(client.user.username, client.user.displayAvatarURL());
       replyToCommand(interaction, Embed);
+    } else if (command === "invite") {
+      replyToCommand(
+        interaction,
+        `Here you invite url: https://discord.com/api/oauth2/authorize?client_id=831828766245912596&permissions=8&scope=bot%20applications.commands`
+      );
     } else {
       replyToCommand(
         interaction,
@@ -418,11 +424,9 @@ client.on("message", (message) => {
 });
 
 client.on("messageDelete", (message) => {
-  // Don't Work
   const guild = message.guild.id,
     channel = message.channel.id,
     MessageID = message.id;
-  console.log(message.attachments.size);
   if (message.attachments.size > 0) {
     UserDeleteImg(guild, channel, MessageID);
   } else {
