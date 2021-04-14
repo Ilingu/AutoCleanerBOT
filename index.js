@@ -139,6 +139,32 @@ const NewTime = (Time, guild, next) => {
     .then(() => next(true))
     .catch(() => next(false));
 };
+
+const getApp = (guildID) => {
+  const app = client.api.applications(client.user.id);
+  if (guildID) {
+    app.guilds(guildID);
+  }
+  return app;
+};
+
+const replyToCommand = async (interaction, replyText) => {
+  let data = {
+    content: replyText,
+  };
+
+  // Check For Embed
+  if (typeof replyText === "object") {
+    data = await createAPIMessage(interaction, replyText);
+  }
+
+  client.api.interactions(interaction.id, interaction.token).callback.post({
+    data: {
+      type: 4,
+      data,
+    },
+  });
+};
 // Cron
 const rule = new schedule.RecurrenceRule();
 rule.hour = 0;
@@ -150,7 +176,7 @@ schedule.scheduleJob(rule, () => {
   });
 });
 // BOT
-client.on("ready", () => {
+client.on("ready", async () => {
   console.log(`I'm now online, my name is ${client.user.username}`);
   client.user.setActivity(
     `ac!help - ${client.guilds.cache.array().length}guilds!`,
@@ -158,6 +184,93 @@ client.on("ready", () => {
       type: "WATCHING",
     }
   );
+
+  /* "/" commands */
+  // Create
+  await getApp(guildCommandsID).commands.post({
+    data: {
+      name: "ping",
+      description: "Returns your ping (in ms)",
+    },
+  });
+  // await getApp(guildCommandsID).commands.post({
+  //   data: {
+  //     name: "EditTime",
+  //     description: "Edit time before the bot deletes images",
+  //     options: [
+  //       {
+  //         name: "time",
+  //         description: "In hours -> 2h OR in Days -> 2d",
+  //         required: true,
+  //         type: 3, // String
+  //       },
+  //     ],
+  //   },
+  // });
+  await getApp(guildCommandsID).commands.post({
+    data: {
+      name: "invite",
+      description: "Get invite link of this bot",
+    },
+  });
+  await getApp(guildCommandsID).commands.post({
+    data: {
+      name: "help",
+      description: "All bot commands",
+    },
+  });
+  // Interact
+  client.ws.on("INTERACTION_CREATE", async (interaction) => {
+    const { name, options } = interaction.data;
+    const command = name.toLowerCase();
+
+    const args = {};
+
+    if (options) {
+      for (const option of options) {
+        const { name, value } = option;
+        args[name] = value;
+      }
+    }
+
+    if (command === "ping") {
+      const embed = new MessageEmbed()
+        .setColor(0xffc300)
+        .setTitle(`🏓 ${message.author.username}'s ping`)
+        .addField(
+          "⏳__You:__",
+          `**${Date.now() - message.createdTimestamp}**ms`
+        )
+        .addField("⏱__BOT__", `*${Math.round(client.ws.ping)}*ms`);
+      replyToCommand(interaction, embed);
+    } else if (command === "help") {
+      const Embed = new MessageEmbed()
+        .setColor(0xffc300)
+        .setTitle("**How to use AutoCleaner ? | ac!help**")
+        .setDescription(
+          `- __prefix:__ ${prefix}\n- **${prefix}time <Hours/Day(s)>**\n=> Edit time before the bot deletes images\n=> __Example:__ ${prefix}time 2d / ${prefix}time 22h\n- **${prefix}help**\n=> See all my commands\n- **${prefix}invite**\n=>- Url for adding this bot into your server\n- **${prefix}ping**\n=>- Returns your ping (in ms)`
+        )
+        .setTimestamp()
+        .setFooter(client.user.username, client.user.displayAvatarURL());
+      replyToCommand(interaction, Embed);
+    }
+    //else if (command === "EditTime".toLowerCase()) {
+    // if (!message.member.hasPermission("ADMINISTRATOR")) return;
+    // const Time = args.time;
+    // let TimeNumber = 0;
+    // if (Time.split("h").length > 1 && Time.split("h")[1]) {
+    // } else {
+    // }
+
+    // replyToCommand(interaction, embed);
+    //}
+    else {
+      replyToCommand(
+        interaction,
+        "This is not a command or you provide a wrong command."
+      );
+    }
+  });
 });
 
 client.on("guildCreate", async (gData) => {
@@ -168,7 +281,7 @@ client.on("guildCreate", async (gData) => {
     new MessageEmbed()
       .setColor(0xffc300)
       .setTitle(`**Thank you for inviting me into ${gData.name}!**✅`)
-      .setDescription("-Try `ac!help` to see all my commands\nPrefix: `ac!`")
+      .setDescription("-Try `ac!help` to see all my commands\n-Prefix: `ac!`")
       .setTimestamp()
       .setFooter(client.user.username, client.user.displayAvatarURL())
   );
@@ -189,6 +302,10 @@ client.on("guildCreate", async (gData) => {
 });
 
 client.on("guildDelete", async (gData) => {
+  const channel = client.channels.cache.find(
+    (channel) => channel.type === "text"
+  );
+  channel.send("😢 See you later (I hope...) !");
   console.log(
     `Connection Lost with ${gData.name} guild (GuildID: ${gData.id})`
   );
@@ -203,7 +320,7 @@ client.on("message", (message) => {
     if (message.author.bot) return;
     if (cmd === "invite")
       return message.reply(
-        `Hello ${message.author.username} 🖐\n Here you invite url: https://discord.com/api/oauth2/authorize?client_id=831828766245912596&permissions=8&scope=bot \n`
+        `Hello ${message.author.username} 🖐\n Here you invite url: https://discord.com/api/oauth2/authorize?client_id=831828766245912596&permissions=8&scope=bot%20applications.commands \n`
       );
     return;
   }
@@ -266,7 +383,7 @@ client.on("message", (message) => {
     if (message.deletable) message.delete({ timeout: 10000 });
     if (!message.author.bot)
       message.author.send(
-        `Hello ${message.author.username} 🖐\n Here you invite url: https://discord.com/api/oauth2/authorize?client_id=831828766245912596&permissions=8&scope=bot \n`
+        `Hello ${message.author.username} 🖐\n Here you invite url: https://discord.com/api/oauth2/authorize?client_id=831828766245912596&permissions=8&scope=bot%20applications.commands \n`
       );
   } else if (cmd === "help") {
     if (message.deletable) message.delete({ timeout: 10000 });
@@ -286,8 +403,12 @@ client.on("message", (message) => {
     const Embed = new MessageEmbed()
       .setColor(0xffc300)
       .setTitle(`🏓 ${message.author.username}'s ping`)
-      .addField("⏳__You:__", `**${Date.now() - message.createdTimestamp}**ms`)
-      .addField("⏱__BOT__", `*${Math.round(client.ws.ping)}*ms`);
+      .addField(
+        "⏳__You:__",
+        `**${Date.now() - message.createdTimestamp}**ms`,
+        true
+      )
+      .addField("⏱__BOT__", `*${Math.round(client.ws.ping)}*ms`, true);
     message.channel.send(Embed);
   } else {
     if (message.deletable) message.delete();
