@@ -165,6 +165,27 @@ const replyToCommand = async (interaction, replyText) => {
     },
   });
 };
+
+const AddSlashCommandForGuildID = async (guildCommandsID) => {
+  await getApp(guildCommandsID).commands.post({
+    data: {
+      name: "ping",
+      description: "Returns your ping (in ms)",
+    },
+  });
+  await getApp(guildCommandsID).commands.post({
+    data: {
+      name: "invite",
+      description: "Get invite link of this bot",
+    },
+  });
+  await getApp(guildCommandsID).commands.post({
+    data: {
+      name: "help",
+      description: "All bot commands",
+    },
+  });
+};
 // Cron
 const rule = new schedule.RecurrenceRule();
 rule.hour = 0;
@@ -188,24 +209,7 @@ client.on("ready", async () => {
   /* "/" commands */
   // Create
   client.guilds.cache.forEach(async (guildCommandsID) => {
-    await getApp(guildCommandsID.id).commands.post({
-      data: {
-        name: "ping",
-        description: "Returns your ping (in ms)",
-      },
-    });
-    await getApp(guildCommandsID.id).commands.post({
-      data: {
-        name: "invite",
-        description: "Get invite link of this bot",
-      },
-    });
-    await getApp(guildCommandsID.id).commands.post({
-      data: {
-        name: "help",
-        description: "All bot commands",
-      },
-    });
+    AddSlashCommandForGuildID(guildCommandsID.id);
   });
   // Interact
   client.ws.on("INTERACTION_CREATE", async (interaction) => {
@@ -251,6 +255,9 @@ client.on("ready", async () => {
 });
 
 client.on("guildCreate", async (gData) => {
+  // Add "/" cmd
+  AddSlashCommandForGuildID(gData.id);
+  // Msg Of Hello
   const channel = client.channels.cache.find((ch) => ch.type === "text");
   const msg = await channel.send(
     new MessageEmbed()
@@ -260,6 +267,7 @@ client.on("guildCreate", async (gData) => {
       .setTimestamp()
       .setFooter(client.user.username, client.user.displayAvatarURL())
   );
+  // Connect Guild To DB
   db.collection("guilds")
     .doc(gData.id)
     .get()
