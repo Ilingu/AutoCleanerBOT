@@ -187,37 +187,25 @@ client.on("ready", async () => {
 
   /* "/" commands */
   // Create
-  await getApp(guildCommandsID).commands.post({
-    data: {
-      name: "ping",
-      description: "Returns your ping (in ms)",
-    },
-  });
-  // await getApp(guildCommandsID).commands.post({
-  //   data: {
-  //     name: "EditTime",
-  //     description: "Edit time before the bot deletes images",
-  //     options: [
-  //       {
-  //         name: "time",
-  //         description: "In hours -> 2h OR in Days -> 2d",
-  //         required: true,
-  //         type: 3, // String
-  //       },
-  //     ],
-  //   },
-  // });
-  await getApp(guildCommandsID).commands.post({
-    data: {
-      name: "invite",
-      description: "Get invite link of this bot",
-    },
-  });
-  await getApp(guildCommandsID).commands.post({
-    data: {
-      name: "help",
-      description: "All bot commands",
-    },
+  client.guilds.cache.forEach(async (guildCommandsID) => {
+    await getApp(guildCommandsID).commands.post({
+      data: {
+        name: "ping",
+        description: "Returns your ping (in ms)",
+      },
+    });
+    await getApp(guildCommandsID).commands.post({
+      data: {
+        name: "invite",
+        description: "Get invite link of this bot",
+      },
+    });
+    await getApp(guildCommandsID).commands.post({
+      data: {
+        name: "help",
+        description: "All bot commands",
+      },
+    });
   });
   // Interact
   client.ws.on("INTERACTION_CREATE", async (interaction) => {
@@ -253,18 +241,7 @@ client.on("ready", async () => {
         .setTimestamp()
         .setFooter(client.user.username, client.user.displayAvatarURL());
       replyToCommand(interaction, Embed);
-    }
-    //else if (command === "EditTime".toLowerCase()) {
-    // if (!message.member.hasPermission("ADMINISTRATOR")) return;
-    // const Time = args.time;
-    // let TimeNumber = 0;
-    // if (Time.split("h").length > 1 && Time.split("h")[1]) {
-    // } else {
-    // }
-
-    // replyToCommand(interaction, embed);
-    //}
-    else {
+    } else {
       replyToCommand(
         interaction,
         "This is not a command or you provide a wrong command."
@@ -275,7 +252,7 @@ client.on("ready", async () => {
 
 client.on("guildCreate", async (gData) => {
   const channel = client.channels.cache.find((ch) => ch.type === "text");
-  channel.send(
+  const msg = await channel.send(
     new MessageEmbed()
       .setColor(0xffc300)
       .setTitle(`**Thank you for inviting me into ${gData.name}!**✅`)
@@ -294,6 +271,19 @@ client.on("guildCreate", async (gData) => {
           TimeImgDelete: 432000000,
           messageImageToSuppr: [],
         });
+      } else {
+        msg.edit(
+          new MessageEmbed()
+            .setColor(0xffc300)
+            .setTitle(
+              `**Ho Ho Happy to see you again, I missed you, ${gData.name}**✅`
+            )
+            .setDescription(
+              "-Try `ac!help` to see all my commands\n-Prefix: `ac!`"
+            )
+            .setTimestamp()
+            .setFooter(client.user.username, client.user.displayAvatarURL())
+        );
       }
     })
     .catch(console.error);
