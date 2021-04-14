@@ -4,7 +4,7 @@
 
 # Installation
 
-[Invite my bot into your server](https://discord.com/api/oauth2/authorize?client_id=831828766245912596&permissions=8&scope=bot)
+[Invite my bot into your server](https://discord.com/api/oauth2/authorize?client_id=831828766245912596&permissions=8&scope=bot%20applications.commands)
 And follow the steps
 
 ##### AUTHOR: [Ilingu](https://github.com/Ilingu)
