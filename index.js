@@ -62,8 +62,7 @@ const UserDeleteImg = (guild, channel, MessageID) => {
         const Data = doc.data().messageImageToSuppr;
         if (Data) {
           Data.forEach((Msg, i) => {
-            console.log(MessageID, Msg.id, channel, Msg.channel);
-            if (Msg.id === MessageID && Msg.channel === channel) {
+            if (Msg.MessageID === MessageID && Msg.channel === channel) {
               Data.splice(i, 1);
             }
           });
