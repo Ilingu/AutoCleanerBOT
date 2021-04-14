@@ -1,0 +1,24 @@
+{
+  "name": "autocleaner",
+  "version": "1.0.0",
+  "description": "Bot that automatically deletes the image after a specified amount of time (default: 5 days).",
+  "main": "index.js",
+  "engines": {
+    "node": "14.16.0"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "BOT"
+  ],
+  "author": "Chollet Arthur",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^12.5.3",
+    "dotenv": "^8.2.0",
+    "firebase": "^8.2.9",
+    "firebase-admin": "^9.5.0",
+    "node-schedule": "^2.0.0"
+  }
+}
