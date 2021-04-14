@@ -170,7 +170,6 @@ client.on("guildCreate", async (gData) => {
       .setTitle(`**Thank you for inviting me into ${gData.name}!**✅`)
       .setDescription("-Try `ac!help` to see all my commands\nPrefix: `ac!`")
       .setTimestamp()
-      .setAuthor(message.author.username, message.author.displayAvatarURL())
       .setFooter(client.user.username, client.user.displayAvatarURL())
   );
   db.collection("guilds")
