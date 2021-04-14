@@ -407,12 +407,8 @@ client.on("message", (message) => {
     const Embed = new MessageEmbed()
       .setColor(0xffc300)
       .setTitle(`🏓 ${message.author.username}'s ping`)
-      .addField(
-        "⏳__You:__",
-        `**${Date.now() - message.createdTimestamp}**ms`,
-        true
-      )
-      .addField("⏱__BOT__", `*${Math.round(client.ws.ping)}*ms`, true);
+      .addField("⏳__You:__", `**${Date.now() - message.createdTimestamp}**ms`)
+      .addField("⏱__BOT__", `*${Math.round(client.ws.ping)}*ms`);
     message.channel.send(Embed);
   } else {
     if (message.deletable) message.delete();
