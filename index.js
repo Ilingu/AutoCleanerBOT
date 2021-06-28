@@ -119,9 +119,16 @@ const CreateNewImg = (guild, channel, MessageID) => {
             channel,
             MessageID,
             guild,
-            Data.TimeImgDelete
+            Data.TimeImgDelete || 432000000
           );
-        else POSTMessage(false, channel, MessageID, guild, Data.TimeImgDelete);
+        else
+          POSTMessage(
+            false,
+            channel,
+            MessageID,
+            guild,
+            Data.TimeImgDelete || 432000000
+          );
       } else {
         console.log("No such document!");
       }
@@ -133,10 +140,25 @@ const NewTime = (Time, guild, next) => {
   db.collection("guilds")
     .doc(guild)
     .update({
-      TimeImgDelete: Time,
+      TimeImgDelete: Time || 432000000,
     })
     .then(() => next(true))
     .catch(() => next(false));
+};
+
+const isValidHttpUrl = (string) => {
+  if (typeof string !== "string") return false;
+  const urlify = () => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return urlRegex.test(string);
+  };
+  try {
+    new URL(string);
+    return true;
+  } catch (_) {
+    if (urlify()) return true;
+    return false;
+  }
 };
 
 const getApp = (guildID) => {
@@ -199,12 +221,14 @@ const AddSlashCommandForGuildID = async (guildCommandsID) => {
 // Cron
 const rule = new schedule.RecurrenceRule();
 rule.hour = 0;
-rule.minute = 0;
+rule.minute = 10;
+rule.tz = "Europe/Paris";
 
 schedule.scheduleJob(rule, () => {
   client.guilds.cache.forEach((guild) => {
     CheckMsgImg(guild.id);
   });
+  console.log(`Auto Test du ${Date.now()}`);
 });
 // BOT
 client.on("ready", async () => {
@@ -310,6 +334,9 @@ client.on("guildCreate", async (gData) => {
 });
 
 client.on("guildDelete", async (gData) => {
+  db.collection("guilds").doc(gData.id).update({
+    ConnLost: Date.now(),
+  });
   console.log(
     `Connection Lost with ${gData.name} guild (GuildID: ${gData.id})`
   );
@@ -337,52 +364,60 @@ client.on("message", (message) => {
   } else {
     CheckMsgImg(guild);
   }
+  if (isValidHttpUrl(message.content) && message.channel.name !== "🔗partage")
+    return message
+      .reply(
+        `Votre message contient une URL, pour le bonheur de tous veuillez le mettre dans le salon prévue à cette effet.`
+      )
+      .then((m) => m.delete({ timeout: 5000 }));
   // Cmd
   if (!message.content.startsWith(prefix)) return;
-
   if (cmd === "time") {
-    if (message.deletable) message.delete({ timeout: 5000 });
-    if (!message.member.hasPermission("ADMINISTRATOR"))
-      return message
-        .reply("__Failed:__ You aren't an Administrator of this server.")
-        .then((m) => m.delete({ timeout: 5000 }));
+    // if (message.deletable) message.delete({ timeout: 5000 });
+    // if (!message.member.hasPermission("ADMINISTRATOR"))
+    //   return message
+    //     .reply("__Failed:__ You aren't an Administrator of this server.")
+    //     .then((m) => m.delete({ timeout: 5000 }));
 
-    if (args.length < 1)
-      return message
-        .reply("Please, provide me edit time")
-        .then((m) => m.delete({ timeout: 5000 }));
+    // if (args.length < 1)
+    //   return message
+    //     .reply("Please, provide me edit time")
+    //     .then((m) => m.delete({ timeout: 5000 }));
 
-    const Time = args[0].toLowerCase();
+    // const Time = args[0].toLowerCase();
 
-    const SendNewTime = (TimeMS) => {
-      NewTime(TimeMS, guild, (success) =>
-        success
-          ? message.channel.send(`✅Time changed to ${Time}`)
-          : message.channel.send(
-              `❌__Error:__ Failed to changed time to ${Time}❌`
-            )
-      );
-    };
+    // const SendNewTime = (TimeMS) => {
+    //   NewTime(TimeMS, guild, (success) =>
+    //     success
+    //       ? message.channel.send(`✅Time changed to ${Time}`)
+    //       : message.channel.send(
+    //           `❌__Error:__ Failed to changed time to ${Time}❌`
+    //         )
+    //   );
+    // };
 
-    if (
-      Time.split("h").length > 1 &&
-      Time.split("h")[1] === "" &&
-      !isNaN(parseInt(Time.split("h")[0]))
-    ) {
-      const InMS = 3600000 * parseInt(Time.split("h")[0]);
-      SendNewTime(InMS);
-    } else if (
-      Time.split("d").length > 1 &&
-      Time.split("d")[1] === "" &&
-      !isNaN(parseInt(Time.split("d")[0]))
-    ) {
-      const InMS = 86400000 * parseInt(Time.split("d")[0]);
-      SendNewTime(InMS);
-    } else {
-      return message
-        .reply("Please, provide me edit time")
-        .then((m) => m.delete({ timeout: 5000 }));
-    }
+    // if (
+    //   Time.split("h").length > 1 &&
+    //   Time.split("h")[1] === "" &&
+    //   !isNaN(parseInt(Time.split("h")[0]))
+    // ) {
+    //   const InMS = 3600000 * parseInt(Time.split("h")[0]);
+    //   SendNewTime(InMS);
+    // } else if (
+    //   Time.split("d").length > 1 &&
+    //   Time.split("d")[1] === "" &&
+    //   !isNaN(parseInt(Time.split("d")[0]))
+    // ) {
+    //   const InMS = 86400000 * parseInt(Time.split("d")[0]);
+    //   SendNewTime(InMS);
+    // } else {
+    //   return message
+    //     .reply("Please, provide me edit time")
+    //     .then((m) => m.delete({ timeout: 5000 }));
+    // }
+    return message
+      .reply("Fonctionnalité désactivé pour le moment")
+      .then((m) => m.delete({ timeout: 5000 }));
   } else if (cmd === "invite") {
     if (message.deletable) message.delete({ timeout: 10000 });
     if (!message.author.bot)
@@ -395,7 +430,7 @@ client.on("message", (message) => {
       .setColor(0xffc300)
       .setTitle("**How to use AutoCleaner ? | ac!help**")
       .setDescription(
-        `- __prefix:__ ${prefix}\n- **${prefix}time <Hours/Day(s)>**\n=> Edit time before the bot deletes images\n=> __Example:__ ${prefix}time 2d / ${prefix}time 22h\n- **${prefix}help**\n=> See all my commands\n- **${prefix}invite**\n=>- Url for adding this bot into your server\n- **${prefix}ping**\n=>- Returns your ping (in ms)`
+        `- __prefix:__ ${prefix}\n- **${prefix}help**\n=> See all my commands\n- **${prefix}invite**\n=>- Url for adding this bot into your server\n- **${prefix}ping**\n=>- Returns your ping (in ms)`
       )
       .setTimestamp()
       .setAuthor(message.author.username, message.author.displayAvatarURL())
