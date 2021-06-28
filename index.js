@@ -233,12 +233,9 @@ schedule.scheduleJob(rule, () => {
 // BOT
 client.on("ready", async () => {
   console.log(`I'm now online, my name is ${client.user.username}`);
-  client.user.setActivity(
-    `ac!help - ${client.guilds.cache.array().length}guilds!`,
-    {
-      type: "WATCHING",
-    }
-  );
+  client.user.setActivity(`ac!help - clean ur server`, {
+    type: "WATCHING",
+  });
 
   /* "/" commands */
   // Create
@@ -463,7 +460,5 @@ client.on("messageDelete", (message) => {
     CheckMsgImg(guild);
   }
 });
-
-client.on("messageUpdate", (message) => CheckMsgImg(message.guild.id));
-
+// client.on("messageUpdate", (message) => CheckMsgImg(message.guild.id));
 client.login(process.env.TOKEN);
