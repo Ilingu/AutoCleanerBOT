@@ -146,8 +146,14 @@ const NewTime = (Time, guild, next) => {
     .catch(() => next(false));
 };
 
-const isValidHttpUrl = (string) => {
-  if (typeof string !== "string") return false;
+const isValidHttpUrlBot = (string) => {
+  if (
+    typeof string !== "string" ||
+    message.content.includes(".gif") ||
+    message.content.includes("-gif") ||
+    message.content.includes("discord")
+  )
+    return false;
   const urlify = () => {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     return urlRegex.test(string);
@@ -361,7 +367,10 @@ client.on("message", (message) => {
   } else {
     CheckMsgImg(guild);
   }
-  if (isValidHttpUrl(message.content) && message.channel.name !== "🔗partage")
+  if (
+    isValidHttpUrlBot(message.content) &&
+    message.channel.name !== "🔗partage"
+  )
     return message
       .reply(
         `Votre message contient une URL, pour le bonheur de tous veuillez le mettre dans le salon prévue à cette effet.`
