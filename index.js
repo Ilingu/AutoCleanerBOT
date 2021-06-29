@@ -149,9 +149,9 @@ const NewTime = (Time, guild, next) => {
 const isValidHttpUrlBot = (string) => {
   if (
     typeof string !== "string" ||
-    message.content.includes(".gif") ||
-    message.content.includes("-gif") ||
-    message.content.includes("discord")
+    string.includes(".gif") ||
+    string.includes("-gif") ||
+    string.includes("discord")
   )
     return false;
   const urlify = () => {
