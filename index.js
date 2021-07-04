@@ -358,69 +358,49 @@ client.on("message", (message) => {
       );
     return;
   }
-  // Features
+  /* Features */
   const guild = message.guild.id,
     channel = message.channel.id,
     MessageID = message.id;
+  // Img
   if (message.attachments.size > 0) {
     CreateNewImg(guild, channel, MessageID);
   } else {
     CheckMsgImg(guild);
   }
+  // SleepMode
+  if (
+    guild === "823815537138073610" &&
+    +new Date()
+      .toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris" })
+      .split(":")[0] >= 1 &&
+    +new Date()
+      .toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris" })
+      .split(":")[0] < 7
+  ) {
+    if (message.deletable) message.delete();
+    return message
+      .reply(
+        "Merci de ne pas perturbé le sommeil des autres. Votre message attendra le lendemain."
+      )
+      .then((m) => m.delete({ timeout: 12000 }));
+  }
+  // URL
   if (
     isValidHttpUrlBot(message.content) &&
     message.channel.name !== "🔗partage"
-  )
+  ) {
     return message
       .reply(
         `Votre message contient une URL, pour le bonheur de tous veuillez le mettre dans le salon prévue à cette effet.`
       )
       .then((m) => m.delete({ timeout: 5000 }));
-  // Cmd
-  if (!message.content.startsWith(prefix)) return;
+  }
+  if (!message.content.startsWith(prefix))
+    // Cmd
+    return;
   if (cmd === "time") {
-    // if (message.deletable) message.delete({ timeout: 5000 });
-    // if (!message.member.hasPermission("ADMINISTRATOR"))
-    //   return message
-    //     .reply("__Failed:__ You aren't an Administrator of this server.")
-    //     .then((m) => m.delete({ timeout: 5000 }));
-
-    // if (args.length < 1)
-    //   return message
-    //     .reply("Please, provide me edit time")
-    //     .then((m) => m.delete({ timeout: 5000 }));
-
-    // const Time = args[0].toLowerCase();
-
-    // const SendNewTime = (TimeMS) => {
-    //   NewTime(TimeMS, guild, (success) =>
-    //     success
-    //       ? message.channel.send(`✅Time changed to ${Time}`)
-    //       : message.channel.send(
-    //           `❌__Error:__ Failed to changed time to ${Time}❌`
-    //         )
-    //   );
-    // };
-
-    // if (
-    //   Time.split("h").length > 1 &&
-    //   Time.split("h")[1] === "" &&
-    //   !isNaN(parseInt(Time.split("h")[0]))
-    // ) {
-    //   const InMS = 3600000 * parseInt(Time.split("h")[0]);
-    //   SendNewTime(InMS);
-    // } else if (
-    //   Time.split("d").length > 1 &&
-    //   Time.split("d")[1] === "" &&
-    //   !isNaN(parseInt(Time.split("d")[0]))
-    // ) {
-    //   const InMS = 86400000 * parseInt(Time.split("d")[0]);
-    //   SendNewTime(InMS);
-    // } else {
-    //   return message
-    //     .reply("Please, provide me edit time")
-    //     .then((m) => m.delete({ timeout: 5000 }));
-    // }
+    if (message.deletable) message.delete({ timeout: 10000 });
     return message
       .reply("Fonctionnalité désactivé pour le moment")
       .then((m) => m.delete({ timeout: 5000 }));
@@ -452,10 +432,9 @@ client.on("message", (message) => {
       .addField("⏱__BOT__", `*${Math.round(client.ws.ping)}*ms`);
     message.channel.send(Embed);
   } else {
-    if (message.deletable) message.delete();
     return message
       .reply(`❌ this command does not exist, try **ac!help**`)
-      .then((m) => m.delete({ timeout: 10000 }));
+      .then((m) => m.delete({ timeout: 5000 }));
   }
 });
 
