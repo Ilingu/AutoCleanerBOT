@@ -368,23 +368,6 @@ client.on("message", (message) => {
   } else {
     CheckMsgImg(guild);
   }
-  // SleepMode
-  if (
-    guild === "823815537138073610" &&
-    +new Date()
-      .toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris" })
-      .split(":")[0] >= 1 &&
-    +new Date()
-      .toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris" })
-      .split(":")[0] < 7
-  ) {
-    if (message.deletable) message.delete();
-    return message
-      .reply(
-        "Merci de ne pas perturbé le sommeil des autres. Votre message attendra le lendemain."
-      )
-      .then((m) => m.delete({ timeout: 12000 }));
-  }
   // URL
   if (
     isValidHttpUrlBot(message.content) &&
