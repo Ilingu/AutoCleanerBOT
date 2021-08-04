@@ -146,26 +146,26 @@ const NewTime = (Time, guild, next) => {
     .catch(() => next(false));
 };
 
-const isValidHttpUrlBot = (string) => {
-  if (
-    typeof string !== "string" ||
-    string.includes(".gif") ||
-    string.includes("-gif") ||
-    string.includes("discord")
-  )
-    return false;
-  const urlify = () => {
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    return urlRegex.test(string);
-  };
-  try {
-    new URL(string);
-    return true;
-  } catch (_) {
-    if (urlify()) return true;
-    return false;
-  }
-};
+// const isValidHttpUrlBot = (string) => {
+//   if (
+//     typeof string !== "string" ||
+//     string.includes(".gif") ||
+//     string.includes("-gif") ||
+//     string.includes("discord")
+//   )
+//     return false;
+//   const urlify = () => {
+//     const urlRegex = /(https?:\/\/[^\s]+)/g;
+//     return urlRegex.test(string);
+//   };
+//   try {
+//     new URL(string);
+//     return true;
+//   } catch (_) {
+//     if (urlify()) return true;
+//     return false;
+//   }
+// };
 
 const getApp = (guildID) => {
   const app = client.api.applications(client.user.id);
@@ -369,16 +369,16 @@ client.on("message", (message) => {
     CheckMsgImg(guild);
   }
   // URL
-  if (
-    isValidHttpUrlBot(message.content) &&
-    message.channel.name !== "🔗partage"
-  ) {
-    return message
-      .reply(
-        `Votre message contient une URL, pour le bonheur de tous veuillez le mettre dans le salon prévue à cette effet.`
-      )
-      .then((m) => m.delete({ timeout: 5000 }));
-  }
+  // if (
+  //   isValidHttpUrlBot(message.content) &&
+  //   message.channel.name !== "🔗partage"
+  // ) {
+  //   return message
+  //     .reply(
+  //       `Votre message contient une URL, pour le bonheur de tous veuillez le mettre dans le salon prévue à cette effet.`
+  //     )
+  //     .then((m) => m.delete({ timeout: 5000 }));
+  // }
   if (!message.content.startsWith(prefix))
     // Cmd
     return;
