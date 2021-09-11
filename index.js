@@ -241,6 +241,7 @@ schedule.scheduleJob("42 * * * *", async () => {
     .find((us) => us.id === "697391898901610566")
     .createDM();
   dmchannel.send("C'est l'heure de la punition, hehe");
+  console.log("Punition Administré");
 });
 // BOT
 client.on("ready", async () => {
