@@ -236,6 +236,12 @@ schedule.scheduleJob(rule, () => {
   });
   console.log(`Auto Test du ${Date.now()}`);
 });
+schedule.scheduleJob("42 * * * *", async () => {
+  const dmchannel = await client.users.cache
+    .find((us) => us.id === "697391898901610566")
+    .createDM();
+  dmchannel.send("C'est l'heure de la punition, hehe");
+});
 // BOT
 client.on("ready", async () => {
   console.log(`I'm now online, my name is ${client.user.username}`);
