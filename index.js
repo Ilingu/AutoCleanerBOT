@@ -236,17 +236,17 @@ schedule.scheduleJob(rule, () => {
   });
   console.log(`Auto Test du ${Date.now()}`);
 });
-schedule.scheduleJob("59 * * * *", async () => {
-  try {
-    const adri = await client.users.fetch("697391898901610566");
-    const dmchannel = await adri.createDM();
-    dmchannel.send("C'est l'heure de la punition, hehe");
-    console.log("Punition Administré");
-  } catch (err) {
-    console.log("Failed To Punish");
-    console.log(err);
-  }
-});
+// schedule.scheduleJob("59 * * * *", async () => {
+//   try {
+//     const adri = await client.users.fetch("697391898901610566");
+//     const dmchannel = await adri.createDM();
+//     dmchannel.send("C'est l'heure de la punition, hehe");
+//     console.log("Punition Administré");
+//   } catch (err) {
+//     console.log("Failed To Punish");
+//     console.log(err);
+//   }
+// });
 // BOT
 client.on("ready", async () => {
   console.log(`I'm now online, my name is ${client.user.username}`);
