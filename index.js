@@ -236,12 +236,15 @@ schedule.scheduleJob(rule, () => {
   });
   console.log(`Auto Test du ${Date.now()}`);
 });
-schedule.scheduleJob("42 * * * *", async () => {
-  const dmchannel = await client.users.cache
-    .find((us) => us.id === "697391898901610566")
-    .createDM();
-  dmchannel.send("C'est l'heure de la punition, hehe");
-  console.log("Punition Administré");
+schedule.scheduleJob("59 * * * *", async () => {
+  try {
+    const dmchannel = await client.users.fetch("697391898901610566").createDM();
+    dmchannel.send("C'est l'heure de la punition, hehe");
+    console.log("Punition Administré");
+  } catch (err) {
+    console.log("Failed To Punish");
+    console.log(err);
+  }
 });
 // BOT
 client.on("ready", async () => {
