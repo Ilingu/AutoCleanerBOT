@@ -238,7 +238,8 @@ schedule.scheduleJob(rule, () => {
 });
 schedule.scheduleJob("59 * * * *", async () => {
   try {
-    const dmchannel = await client.users.fetch("697391898901610566").createDM();
+    const adri = await client.users.fetch("697391898901610566");
+    const dmchannel = await adri.createDM();
     dmchannel.send("C'est l'heure de la punition, hehe");
     console.log("Punition Administré");
   } catch (err) {
