@@ -88,13 +88,15 @@ const CheckMsgImg = (guild) => {
               const channelOfMessage = client.channels.cache.find(
                 (ch) => ch.id === Msg.channel
               );
-              channelOfMessage.messages
-                .fetch(Msg.MessageID)
-                .then((msgSupp) => {
-                  msgSupp.delete();
-                })
-                .catch(console.error);
-              Data.splice(i, 1);
+              if (channelOfMessage) {
+                channelOfMessage.messages
+                  .fetch(Msg.MessageID)
+                  .then((msgSupp) => {
+                    msgSupp.delete();
+                  })
+                  .catch(console.error);
+                Data.splice(i, 1);
+              }
             }
           });
           UpdateMessageVar(Data, guild);
