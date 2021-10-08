@@ -61,16 +61,11 @@ const deleteAllChannelImage = (guildId, channelId) => {
       if (doc.exists) {
         const Data = doc.data().messageImageToSuppr;
         if (Data) {
-          let NumberOfSuppr = 0;
-          Data.forEach((Msg, i) => {
-            console.log(Msg.channel, channelId);
-            if (Msg.channel === channelId) {
-              console.log(i - NumberOfSuppr);
-              Data.splice(i - NumberOfSuppr, 1);
-              NumberOfSuppr++;
-            }
-          });
-          UpdateMessageVar(Data, guildId);
+          console.log(Data, Data.length);
+          const ArrayMsgResult = Data.filter(
+            (Msg) => Msg.channel !== channelId
+          );
+          UpdateMessageVar(ArrayMsgResult, guildId);
         }
       } else {
         console.log("No such document!");
