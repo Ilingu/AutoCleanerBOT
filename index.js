@@ -53,6 +53,28 @@ const UpdateMessageVar = (Data, guild) => {
   });
 };
 
+const deleteAllChannelImage = (guildId, channelId) => {
+  db.collection("guilds")
+    .doc(guildId)
+    .get()
+    .then((doc) => {
+      if (doc.exists) {
+        const Data = doc.data().messageImageToSuppr;
+        if (Data) {
+          Data.forEach((Msg, i) => {
+            if (Msg.channel === channelId) {
+              Data.splice(i, 1);
+            }
+          });
+          UpdateMessageVar(Data, guildId);
+        }
+      } else {
+        console.log("No such document!");
+      }
+    })
+    .catch(console.error);
+};
+
 const UserDeleteImg = (guild, channel, MessageID) => {
   db.collection("guilds")
     .doc(guild)
@@ -238,17 +260,6 @@ schedule.scheduleJob(rule, () => {
   });
   console.log(`Auto Test du ${Date.now()}`);
 });
-// schedule.scheduleJob("59 * * * *", async () => {
-//   try {
-//     const adri = await client.users.fetch("697391898901610566");
-//     const dmchannel = await adri.createDM();
-//     dmchannel.send("C'est l'heure de la punition, hehe");
-//     console.log("Punition Administré");
-//   } catch (err) {
-//     console.log("Failed To Punish");
-//     console.log(err);
-//   }
-// });
 // BOT
 client.on("ready", async () => {
   console.log(`I'm now online, my name is ${client.user.username}`);
@@ -305,6 +316,10 @@ client.on("ready", async () => {
     }
   });
 });
+
+client.on("channelDelete", (channel) =>
+  deleteAllChannelImage(channel.guild.id, channel.id)
+);
 
 client.on("guildCreate", async (gData) => {
   // Add "/" cmd
