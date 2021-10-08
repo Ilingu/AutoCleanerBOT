@@ -63,6 +63,7 @@ const deleteAllChannelImage = (guildId, channelId) => {
         if (Data) {
           let NumberOfSuppr = 0;
           Data.forEach((Msg, i) => {
+            console.log(Msg.channel, channelId);
             if (Msg.channel === channelId) {
               console.log(i - NumberOfSuppr);
               Data.splice(i - NumberOfSuppr, 1);
