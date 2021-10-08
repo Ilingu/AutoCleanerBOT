@@ -61,7 +61,6 @@ const deleteAllChannelImage = (guildId, channelId) => {
       if (doc.exists) {
         const Data = doc.data().messageImageToSuppr;
         if (Data) {
-          console.log(Data, Data.length);
           const ArrayMsgResult = Data.filter(
             (Msg) => Msg.channel !== channelId
           );
