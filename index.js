@@ -61,9 +61,11 @@ const deleteAllChannelImage = (guildId, channelId) => {
       if (doc.exists) {
         const Data = doc.data().messageImageToSuppr;
         if (Data) {
+          let NumberOfSuppr = 0;
           Data.forEach((Msg, i) => {
             if (Msg.channel === channelId) {
-              Data.splice(i, 1);
+              Data.splice(i - NumberOfSuppr, 1);
+              NumberOfSuppr++;
             }
           });
           UpdateMessageVar(Data, guildId);
