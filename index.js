@@ -104,6 +104,7 @@ const CheckMsgToDelete = (guild) => {
       if (doc.exists) {
         const Data = doc.data().messageImageToSuppr;
         if (Data) {
+          let numOfDeleteItem = 0;
           Data.forEach((Msg, i) => {
             if (Msg.TimeStamp <= Date.now()) {
               const channelOfMessage = client.channels.cache.find(
@@ -116,11 +117,13 @@ const CheckMsgToDelete = (guild) => {
                     msgSupp.delete();
                   })
                   .catch(console.error);
-                Data.splice(i, 1);
+                Data.splice(i - numOfDeleteItem, 1);
+                numOfDeleteItem++;
               }
             }
           });
           UpdateMessageVar(Data, guild);
+          numOfDeleteItem = 0;
         }
       } else {
         console.log("No such document!");
