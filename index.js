@@ -416,7 +416,9 @@ client.on("messageDelete", (message) => {
     ? UserDeleteRemovableObj(guild, channel, MessageID)
     : null;
 
-  !message.attachments.size && CheckMsgToDelete(guild);
+  !message.attachments.size &&
+    message.channel.name !== "dm" &&
+    CheckMsgToDelete(guild);
 });
 
 // Login
