@@ -363,7 +363,9 @@ client.on("message", (message) => {
   message.channel.name === "dm" &&
     !message.attachments.size &&
     CreateNewRemovableObj(guild, channel, MessageID, true);
-  !message.attachments.size && CheckMsgToDelete(guild);
+  !message.attachments.size &&
+    message.channel.name !== "dm" &&
+    CheckMsgToDelete(guild);
 
   // CMD
   if (!message.content.startsWith(prefix)) return;
