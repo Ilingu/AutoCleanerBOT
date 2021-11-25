@@ -363,9 +363,7 @@ client.on("message", (message) => {
   message.channel.name === "dm" &&
     !message.attachments.size &&
     CreateNewRemovableObj(guild, channel, MessageID, true);
-  !message.attachments.size &&
-    message.channel.name !== "dm" &&
-    CheckMsgToDelete(guild);
+  !message.attachments.size && CheckMsgToDelete(guild);
 
   // CMD
   if (!message.content.startsWith(prefix)) return;
@@ -412,9 +410,9 @@ client.on("messageDelete", (message) => {
   const guild = message.guild.id,
     channel = message.channel.id,
     MessageID = message.id;
-  message.attachments.size > 0 &&
-    message.channel.name === "dm" &&
-    UserDeleteRemovableObj(guild, channel, MessageID);
+  message.attachments.size > 0 || message.channel.name === "dm"
+    ? UserDeleteRemovableObj(guild, channel, MessageID)
+    : null;
 
   !message.attachments.size && CheckMsgToDelete(guild);
 });
