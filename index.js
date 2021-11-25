@@ -22,8 +22,9 @@ config({
 });
 // Fn
 const POSTMessage = (AllMessage, channel, MessageID, guild, TimeImgDelete) => {
-  // 172800000 -> Ms of 2days
+  // 172800000 => Ms of 2days
   // 432000000 => Ms of 5days
+  // 1728000000 => Ms of 20d
   db.collection("guilds")
     .doc(guild)
     .update({
@@ -53,7 +54,7 @@ const UpdateMessageVar = (Data, guild) => {
   });
 };
 
-const deleteAllChannelImage = (guildId, channelId) => {
+const deleteAllChannelRemovableObj = (guildId, channelId) => {
   db.collection("guilds")
     .doc(guildId)
     .get()
@@ -73,7 +74,7 @@ const deleteAllChannelImage = (guildId, channelId) => {
     .catch(console.error);
 };
 
-const UserDeleteImg = (guild, channel, MessageID) => {
+const UserDeleteRemovableObj = (guild, channel, MessageID) => {
   db.collection("guilds")
     .doc(guild)
     .get()
@@ -95,7 +96,7 @@ const UserDeleteImg = (guild, channel, MessageID) => {
     .catch(console.error);
 };
 
-const CheckMsgImg = (guild) => {
+const CheckMsgToDelete = (guild) => {
   db.collection("guilds")
     .doc(guild)
     .get()
@@ -128,7 +129,7 @@ const CheckMsgImg = (guild) => {
     .catch(console.error);
 };
 
-const CreateNewImg = (guild, channel, MessageID) => {
+const CreateNewRemovableObj = (guild, channel, MessageID, dmMsg = false) => {
   db.collection("guilds")
     .doc(guild)
     .get()
@@ -141,7 +142,7 @@ const CreateNewImg = (guild, channel, MessageID) => {
             channel,
             MessageID,
             guild,
-            Data.TimeImgDelete || 432000000
+            dmMsg ? 1728000000 : 432000000
           );
         else
           POSTMessage(
@@ -149,7 +150,7 @@ const CreateNewImg = (guild, channel, MessageID) => {
             channel,
             MessageID,
             guild,
-            Data.TimeImgDelete || 432000000
+            dmMsg ? 1728000000 : 432000000
           );
       } else {
         console.log("No such document!");
@@ -157,37 +158,6 @@ const CreateNewImg = (guild, channel, MessageID) => {
     })
     .catch(console.error);
 };
-
-const NewTime = (Time, guild, next) => {
-  db.collection("guilds")
-    .doc(guild)
-    .update({
-      TimeImgDelete: Time || 432000000,
-    })
-    .then(() => next(true))
-    .catch(() => next(false));
-};
-
-// const isValidHttpUrlBot = (string) => {
-//   if (
-//     typeof string !== "string" ||
-//     string.includes(".gif") ||
-//     string.includes("-gif") ||
-//     string.includes("discord")
-//   )
-//     return false;
-//   const urlify = () => {
-//     const urlRegex = /(https?:\/\/[^\s]+)/g;
-//     return urlRegex.test(string);
-//   };
-//   try {
-//     new URL(string);
-//     return true;
-//   } catch (_) {
-//     if (urlify()) return true;
-//     return false;
-//   }
-// };
 
 const getApp = (guildID) => {
   const app = client.api.applications(client.user.id);
@@ -254,7 +224,7 @@ rule.tz = "Europe/Paris";
 
 schedule.scheduleJob(rule, () => {
   client.guilds.cache.forEach((guild) => {
-    CheckMsgImg(guild.id);
+    CheckMsgToDelete(guild.id);
   });
   console.log(`Auto Test du ${Date.now()}`);
 });
@@ -316,7 +286,7 @@ client.on("ready", async () => {
 });
 
 client.on("channelDelete", (channel) =>
-  deleteAllChannelImage(channel.guild.id, channel.id)
+  deleteAllChannelRemovableObj(channel.guild.id, channel.id)
 );
 
 client.on("guildCreate", async (gData) => {
@@ -341,7 +311,6 @@ client.on("guildCreate", async (gData) => {
         db.collection("guilds").doc(gData.id).set({
           guildID: gData.id,
           guildName: gData.name,
-          TimeImgDelete: 432000000,
           messageImageToSuppr: [],
         });
       } else {
@@ -389,25 +358,15 @@ client.on("message", (message) => {
     channel = message.channel.id,
     MessageID = message.id;
   // Img
-  if (message.attachments.size > 0) {
-    CreateNewImg(guild, channel, MessageID);
-  } else {
-    CheckMsgImg(guild);
-  }
-  // URL
-  // if (
-  //   isValidHttpUrlBot(message.content) &&
-  //   message.channel.name !== "🔗partage"
-  // ) {
-  //   return message
-  //     .reply(
-  //       `Votre message contient une URL, pour le bonheur de tous veuillez le mettre dans le salon prévue à cette effet.`
-  //     )
-  //     .then((m) => m.delete({ timeout: 5000 }));
-  // }
-  if (!message.content.startsWith(prefix))
-    // Cmd
-    return;
+  message.attachments.size > 0 &&
+    CreateNewRemovableObj(guild, channel, MessageID);
+  message.channel.name === "dm" &&
+    !message.attachments.size &&
+    CreateNewRemovableObj(guild, channel, MessageID, "");
+  CheckMsgToDelete(guild);
+
+  // CMD
+  if (!message.content.startsWith(prefix)) return;
   if (cmd === "time") {
     if (message.deletable) message.delete({ timeout: 10000 });
     return message
@@ -452,9 +411,9 @@ client.on("messageDelete", (message) => {
     channel = message.channel.id,
     MessageID = message.id;
   if (message.attachments.size > 0) {
-    UserDeleteImg(guild, channel, MessageID);
+    UserDeleteRemovableObj(guild, channel, MessageID);
   } else {
-    CheckMsgImg(guild);
+    CheckMsgToDelete(guild);
   }
 });
 // client.on("messageUpdate", (message) => CheckMsgImg(message.guild.id));
