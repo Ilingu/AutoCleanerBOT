@@ -22,9 +22,8 @@ config({
 });
 // Fn
 const POSTMessage = (AllMessage, channel, MessageID, guild, TimeImgDelete) => {
-  // 172800000 => Ms of 2days
+  // 172800000 -> Ms of 2days
   // 432000000 => Ms of 5days
-  // 1728000000 => Ms of 20d
   db.collection("guilds")
     .doc(guild)
     .update({
@@ -54,7 +53,7 @@ const UpdateMessageVar = (Data, guild) => {
   });
 };
 
-const deleteAllChannelRemovableObj = (guildId, channelId) => {
+const deleteAllChannelImage = (guildId, channelId) => {
   db.collection("guilds")
     .doc(guildId)
     .get()
@@ -74,7 +73,7 @@ const deleteAllChannelRemovableObj = (guildId, channelId) => {
     .catch(console.error);
 };
 
-const UserDeleteRemovableObj = (guild, channel, MessageID) => {
+const UserDeleteImg = (guild, channel, MessageID) => {
   db.collection("guilds")
     .doc(guild)
     .get()
@@ -96,7 +95,7 @@ const UserDeleteRemovableObj = (guild, channel, MessageID) => {
     .catch(console.error);
 };
 
-const CheckMsgToDelete = (guild) => {
+const CheckMsgImg = (guild) => {
   db.collection("guilds")
     .doc(guild)
     .get()
@@ -104,7 +103,6 @@ const CheckMsgToDelete = (guild) => {
       if (doc.exists) {
         const Data = doc.data().messageImageToSuppr;
         if (Data) {
-          let numOfDeleteItem = 0;
           Data.forEach((Msg, i) => {
             if (Msg.TimeStamp <= Date.now()) {
               const channelOfMessage = client.channels.cache.find(
@@ -117,13 +115,11 @@ const CheckMsgToDelete = (guild) => {
                     msgSupp.delete();
                   })
                   .catch(console.error);
-                Data.splice(i - numOfDeleteItem, 1);
-                numOfDeleteItem++;
+                Data.splice(i, 1);
               }
             }
           });
           UpdateMessageVar(Data, guild);
-          numOfDeleteItem = 0;
         }
       } else {
         console.log("No such document!");
@@ -132,7 +128,7 @@ const CheckMsgToDelete = (guild) => {
     .catch(console.error);
 };
 
-const CreateNewRemovableObj = (guild, channel, MessageID, dmMsg = false) => {
+const CreateNewImg = (guild, channel, MessageID) => {
   db.collection("guilds")
     .doc(guild)
     .get()
@@ -145,7 +141,7 @@ const CreateNewRemovableObj = (guild, channel, MessageID, dmMsg = false) => {
             channel,
             MessageID,
             guild,
-            dmMsg ? 1728000000 : 432000000
+            Data.TimeImgDelete || 432000000
           );
         else
           POSTMessage(
@@ -153,7 +149,7 @@ const CreateNewRemovableObj = (guild, channel, MessageID, dmMsg = false) => {
             channel,
             MessageID,
             guild,
-            dmMsg ? 1728000000 : 432000000
+            Data.TimeImgDelete || 432000000
           );
       } else {
         console.log("No such document!");
@@ -227,7 +223,7 @@ rule.tz = "Europe/Paris";
 
 schedule.scheduleJob(rule, () => {
   client.guilds.cache.forEach((guild) => {
-    CheckMsgToDelete(guild.id);
+    CheckMsgImg(guild.id);
   });
   console.log(`Auto Test du ${Date.now()}`);
 });
@@ -289,7 +285,7 @@ client.on("ready", async () => {
 });
 
 client.on("channelDelete", (channel) =>
-  deleteAllChannelRemovableObj(channel.guild.id, channel.id)
+  deleteAllChannelImage(channel.guild.id, channel.id)
 );
 
 client.on("guildCreate", async (gData) => {
@@ -361,16 +357,13 @@ client.on("message", (message) => {
     channel = message.channel.id,
     MessageID = message.id;
   // Img
-  message.attachments.size > 0 &&
-    CreateNewRemovableObj(guild, channel, MessageID);
-  message.channel.name === "dm" &&
-    !message.attachments.size &&
-    CreateNewRemovableObj(guild, channel, MessageID, true);
-  !message.attachments.size &&
-    message.channel.name !== "dm" &&
-    CheckMsgToDelete(guild);
+  if (message.attachments.size > 0) {
+    CreateNewImg(guild, channel, MessageID);
+  } else {
+    CheckMsgImg(guild);
+  }
 
-  // CMD
+  // Cmd
   if (!message.content.startsWith(prefix)) return;
   if (cmd === "time") {
     if (message.deletable) message.delete({ timeout: 10000 });
@@ -415,14 +408,11 @@ client.on("messageDelete", (message) => {
   const guild = message.guild.id,
     channel = message.channel.id,
     MessageID = message.id;
-  message.attachments.size > 0 || message.channel.name === "dm"
-    ? UserDeleteRemovableObj(guild, channel, MessageID)
-    : null;
-
-  !message.attachments.size &&
-    message.channel.name !== "dm" &&
-    CheckMsgToDelete(guild);
+  if (message.attachments.size > 0) {
+    UserDeleteImg(guild, channel, MessageID);
+  } else {
+    CheckMsgImg(guild);
+  }
 });
 
-// Login
 client.login(process.env.TOKEN);
