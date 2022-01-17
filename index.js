@@ -362,6 +362,9 @@ client.on("message", (message) => {
   } else {
     CheckMsgImg(guild);
   }
+  // No u
+  if (message.content.toLowerCase().includes("no u") && !message.author.bot)
+    return message.channel.send("No u");
 
   // Cmd
   if (!message.content.startsWith(prefix)) return;
