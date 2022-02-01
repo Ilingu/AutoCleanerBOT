@@ -215,6 +215,16 @@ const AddSlashCommandForGuildID = async (guildCommandsID) => {
     },
   });
 };
+
+const IsIsultingUs = (msgContent) =>
+  msgContent.includes("nou") ||
+  msgContent.includes("noyou") ||
+  msgContent.includes("noy") ||
+  msgContent.includes("fcku") ||
+  msgContent.includes("fucku") ||
+  msgContent.includes("fckyou") ||
+  msgContent.includes("fuckyou");
+
 // Cron
 const rule = new schedule.RecurrenceRule();
 rule.hour = 0;
@@ -371,10 +381,7 @@ client.on("message", (message) => {
     CheckMsgImg(guild);
   }
   // No u
-  if (
-    !message.author.bot &&
-    (msgContent.includes("nou") || msgContent.includes("noyou"))
-  )
+  if (!message.author.bot && IsIsultingUs(msgContent))
     return message.channel.send("No u");
 
   // Cmd
@@ -416,6 +423,20 @@ client.on("message", (message) => {
       .reply(`❌ this command does not exist, try **ac!help**`)
       .then((m) => m.delete({ timeout: 5000 }));
   }
+});
+
+client.on("messageUpdate", (message) => {
+  // No u
+  const msgContent = message.content
+    .trim()
+    .toLowerCase()
+    .split(" ")
+    .join("")
+    .split("\n")
+    .join("");
+
+  if (!message.author.bot && IsIsultingUs(msgContent))
+    return message.reply("No u");
 });
 
 client.on("messageDelete", (message) => {
