@@ -343,6 +343,14 @@ client.on("message", (message) => {
   const prefix = "ac!";
   const args = message.content.slice(prefix.length).trim().split(/ +/g);
   const cmd = args.shift().toLowerCase();
+  const msgContent = message.content
+    .trim()
+    .toLowerCase()
+    .split(" ")
+    .join("")
+    .split("\n")
+    .join("");
+
   if (!message.guild) {
     // DM
     if (message.author.bot) return;
@@ -363,7 +371,10 @@ client.on("message", (message) => {
     CheckMsgImg(guild);
   }
   // No u
-  if (message.content.toLowerCase().includes("no u") && !message.author.bot)
+  if (
+    !message.author.bot &&
+    (msgContent.includes("nou") || msgContent.includes("noyou"))
+  )
     return message.channel.send("No u");
 
   // Cmd
