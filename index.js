@@ -217,9 +217,10 @@ const AddSlashCommandForGuildID = async (guildCommandsID) => {
 };
 
 const IsIsultingUs = (msgContent) =>
-  msgContent.includes("nou") ||
-  msgContent.includes("noyou") ||
-  msgContent.includes("noy") ||
+  ((msgContent.includes("nou") ||
+    msgContent.includes("noyou") ||
+    msgContent.includes("noy")) &&
+    !msgContent.includes("nous")) ||
   msgContent.includes("fcku") ||
   msgContent.includes("fucku") ||
   msgContent.includes("fckyou") ||
