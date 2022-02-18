@@ -358,11 +358,28 @@ client.on("message", (message) => {
   const guild = message.guild.id,
     channel = message.channel.id,
     MessageID = message.id;
+
   // Img
-  if (message.attachments.size > 0) {
-    CreateNewImg(guild, channel, MessageID);
-  } else {
-    CheckMsgImg(guild);
+  if (message.attachments.size > 0) CreateNewImg(guild, channel, MessageID);
+  else CheckMsgImg(guild);
+
+  // Good Channel For Music
+  if (
+    message.content.startsWith("=music") &&
+    message.channel.name !== "music-cmd"
+  ) {
+    if (message.deletable) message.delete();
+    const channelMusic = message.guild.channels.cache.find(
+      (ch) => ch.name === "music-cmd"
+    );
+
+    message
+      .reply(
+        `❌ Mauvais Salon ❌\nLe salon pour les commandes du BOT music est <#${channelMusic.id}>`
+      )
+      .then((m) => {
+        m.delete({ timeout: 15000 });
+      });
   }
 
   // Cmd
