@@ -340,7 +340,6 @@ client.on("guildDelete", async (gData) => {
   );
 });
 
-let NextMsgWillBeAyaya = false;
 client.on("message", (message) => {
   const prefix = "ac!";
   const args = message.content.slice(prefix.length).trim().split(/ +/g);
@@ -365,15 +364,17 @@ client.on("message", (message) => {
   else CheckMsgImg(guild);
 
   // Good Channel For Music
-  if (message.author.id === "185476724627210241" && NextMsgWillBeAyaya) {
-    NextMsgWillBeAyaya = false;
-    if (message.deletable) message.delete();
-  }
+  if (
+    message.author.id === "185476724627210241" &&
+    message.channel.name !== "music-cmd" &&
+    message.deletable
+  )
+    message.delete();
+
   if (
     message.content.startsWith("=music") &&
     message.channel.name !== "music-cmd"
   ) {
-    NextMsgWillBeAyaya = true;
     if (message.deletable) message.delete();
     const channelMusic = message.guild.channels.cache.find(
       (ch) => ch.name === "music-cmd"
