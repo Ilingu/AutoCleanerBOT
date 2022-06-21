@@ -1,7 +1,7 @@
-const { Client, MessageEmbed, APIMessage } = require("discord.js");
+const { Client, MessageEmbed, Intents } = require("discord.js");
+const { SlashCommandBuilder } = require("@discordjs/builders");
 const { config } = require("dotenv");
 const schedule = require("node-schedule");
-const firebase = require("firebase/app");
 const admin = require("firebase-admin");
 
 // Initialize Firebase
@@ -15,11 +15,17 @@ const db = admin.firestore();
 
 // Config
 const client = new Client({
-  disableMentions: "everyone",
+  intents: [
+    Intents.FLAGS.GUILDS,
+    Intents.FLAGS.DIRECT_MESSAGES,
+    Intents.FLAGS.GUILD_MESSAGES,
+    Intents.FLAGS.GUILD_MEMBERS,
+  ],
 });
 config({
   path: __dirname + "/.env",
 });
+
 // Fn
 const POSTMessage = (AllMessage, channel, MessageID, guild, TimeImgDelete) => {
   // 172800000 -> Ms of 2days
@@ -158,64 +164,6 @@ const CreateNewImg = (guild, channel, MessageID) => {
     .catch(console.error);
 };
 
-const getApp = (guildID) => {
-  const app = client.api.applications(client.user.id);
-  if (guildID) {
-    app.guilds(guildID);
-  }
-  return app;
-};
-
-const createAPIMessage = async (interaction, content) => {
-  const { data, files } = await APIMessage.create(
-    client.channels.resolve(interaction.channel_id),
-    content
-  )
-    .resolveData()
-    .resolveFiles();
-
-  return { ...data, files };
-};
-
-const replyToCommand = async (interaction, replyText) => {
-  let data = {
-    content: replyText,
-  };
-
-  // Check For Embed
-  if (typeof replyText === "object") {
-    data = await createAPIMessage(interaction, replyText);
-  }
-
-  client.api.interactions(interaction.id, interaction.token).callback.post({
-    data: {
-      type: 4,
-      data,
-    },
-  });
-};
-
-const AddSlashCommandForGuildID = async (guildCommandsID) => {
-  await getApp(guildCommandsID).commands.post({
-    data: {
-      name: "ping",
-      description: "Returns your ping (in ms)",
-    },
-  });
-  await getApp(guildCommandsID).commands.post({
-    data: {
-      name: "invite",
-      description: "Get invite link of this bot",
-    },
-  });
-  await getApp(guildCommandsID).commands.post({
-    data: {
-      name: "help",
-      description: "All bot commands",
-    },
-  });
-};
-
 // Cron
 const rule = new schedule.RecurrenceRule();
 rule.hour = 0;
@@ -228,6 +176,23 @@ schedule.scheduleJob(rule, () => {
   });
   console.log(`Auto Test du ${Date.now()}`);
 });
+
+/* /slash command */
+
+const NewSlash = (name, desc) =>
+  new SlashCommandBuilder().setName(name).setDescription(desc);
+const SlashCmd = [
+  NewSlash("help", "List of all bot commands").addSubcommand((subcommand) => {
+    const sub = subcommand
+      .setName("about")
+      .setDescription("Info About Author of this Bot");
+    sub.type = 1;
+    return sub;
+  }),
+  NewSlash("invite", "Invite this bot to your server"),
+  NewSlash("ping", "Returns your ping (in ms)"),
+];
+
 // BOT
 client.on("ready", async () => {
   console.log(`I'm now online, my name is ${client.user.username}`);
@@ -235,73 +200,95 @@ client.on("ready", async () => {
     type: "WATCHING",
   });
 
-  /* "/" commands */
-  // Create
-  client.guilds.cache.forEach(async (guildCommandsID) => {
-    AddSlashCommandForGuildID(guildCommandsID.id);
-  });
-  // Interact
-  client.ws.on("INTERACTION_CREATE", async (interaction) => {
-    const { name, options } = interaction.data;
-    const command = name.toLowerCase();
-
-    const args = {};
-
-    if (options) {
-      for (const option of options) {
-        const { name, value } = option;
-        args[name] = value;
-      }
-    }
-
-    if (command === "ping") {
-      const embed = new MessageEmbed()
-        .setColor(0xffc300)
-        .setTitle(`🏓pong`)
-        .addField("⏱__BOT__", `*${Math.round(client.ws.ping)}*ms`);
-      replyToCommand(interaction, embed);
-    } else if (command === "help") {
-      const prefix = "ac!";
-      const Embed = new MessageEmbed()
-        .setColor(0xffc300)
-        .setTitle("**How to use AutoCleaner ? | ac!help**")
-        .setDescription(
-          `- __prefix:__ ${prefix}\n- **${prefix}time <Hours/Day(s)>**\n=> Edit time before the bot deletes images\n=> __Example:__ ${prefix}time 2d / ${prefix}time 22h\n- **${prefix}help**\n=> See all my commands\n- **${prefix}invite**\n=>- Url for adding this bot into your server\n- **${prefix}ping**\n=>- Returns your ping (in ms)`
-        )
-        .setTimestamp()
-        .setFooter(client.user.username, client.user.displayAvatarURL());
-      replyToCommand(interaction, Embed);
-    } else if (command === "invite") {
-      replyToCommand(
-        interaction,
-        `Here you invite url: https://discord.com/api/oauth2/authorize?client_id=831828766245912596&permissions=8&scope=bot%20applications.commands`
-      );
-    } else {
-      replyToCommand(
-        interaction,
-        "This is not a command or you provide a wrong command."
-      );
-    }
-  });
+  client.application.commands.cache.forEach((cmd) => cmd.delete());
+  for (const command of SlashCmd) {
+    client.application.commands.create(command);
+  }
 });
 
-client.on("channelDelete", (channel) =>
-  deleteAllChannelImage(channel.guild.id, channel.id)
-);
+// /slash command listener
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isCommand()) return;
+
+  if (interaction.commandName === "help") {
+    if (interaction.options.getSubcommand() === "about") {
+      const EmbedAuthor = new MessageEmbed()
+        .setColor(0xffc300)
+        .setTitle("**Me, Ilingu 😎**")
+        .setDescription(
+          `Nice to meet you _@${interaction.user.username}_, I'm Ilingu, the creator of AutoCleanerBOT.\n\n🌐 **Connect With Me:**\n__Github:__ https://github.com/Ilingu\n__Email:__ ilingu@protonmail.com`
+        )
+        .setURL("https://github.com/Ilingu")
+        .setFooter({
+          text: client.user.username,
+          iconURL: client.user.displayAvatarURL(),
+        });
+
+      await interaction.reply({
+        embeds: [EmbedAuthor],
+        ephemeral: true,
+      });
+      return setTimeout(() => {
+        interaction.followUp({
+          content: "Also I forgot to mention that I'm an **EPIC DEV** ⚡",
+          ephemeral: true,
+        });
+      }, 1400);
+    }
+    const prefix = "ac!";
+    const EmbedHelp = new MessageEmbed()
+      .setColor(0xffc300)
+      .setTitle("**How to use AutoCleaner ? | ac!help**")
+      .setDescription(
+        `- __prefix:__ ${prefix}\n- **${prefix}help**\n=> See all my commands\n- **${prefix}invite**\n=>- Url for adding this bot into your server\n- **${prefix}ping**\n=>- Returns your ping (in ms)`
+      )
+      .setTimestamp()
+      .setAuthor({
+        name: interaction.user.username,
+        iconURL: interaction.user.displayAvatarURL(),
+      })
+      .setFooter({
+        text: client.user.username,
+        iconURL: client.user.displayAvatarURL(),
+      });
+    return interaction.reply({ embeds: [EmbedHelp] });
+  }
+  if (interaction.commandName === "invite") {
+    return interaction.reply({
+      content: `Hello ${interaction.user.username} 🖐\nHere you invite url: https://discord.com/api/oauth2/authorize?client_id=831828766245912596&permissions=8&scope=bot%20applications.commands \n`,
+      ephemeral: true,
+    });
+  }
+  if (interaction.commandName === "ping") {
+    const EmbedPing = new MessageEmbed()
+      .setColor(0xffc300)
+      .setTitle(`🏓 ${interaction.user.username}'s ping`)
+      .addField(
+        "⏳__You:__",
+        `**${Date.now() - interaction.createdTimestamp}**ms`
+      )
+      .addField("⏱__BOT__", `*${Math.round(client.ws.ping)}*ms`);
+    return interaction.reply({ embeds: [EmbedPing] });
+  }
+  return interaction.reply("❌ Command Not Found");
+});
 
 client.on("guildCreate", async (gData) => {
-  // Add "/" cmd
-  AddSlashCommandForGuildID(gData.id);
   // Msg Of Hello
-  const channel = client.channels.cache.find((ch) => ch.type === "text");
-  const msg = await channel.send(
-    new MessageEmbed()
-      .setColor(0xffc300)
-      .setTitle(`**Thank you for inviting me into ${gData.name}!**✅`)
-      .setDescription("-Try `ac!help` to see all my commands\n-Prefix: `ac!`")
-      .setTimestamp()
-      .setFooter(client.user.username, client.user.displayAvatarURL())
-  );
+  const channel = client.channels.cache.find((ch) => ch.type === "GUILD_TEXT");
+  const msg = await channel.send({
+    embeds: [
+      new MessageEmbed()
+        .setColor(0xffc300)
+        .setTitle(`**Thank you for inviting me into ${gData.name}!**✅`)
+        .setDescription("-Try `ac!help` to see all my commands\n-Prefix: `ac!`")
+        .setTimestamp()
+        .setFooter({
+          text: client.user.username,
+          iconURL: client.user.displayAvatarURL(),
+        }),
+    ],
+  });
   // Connect Guild To DB
   db.collection("guilds")
     .doc(gData.id)
@@ -324,23 +311,33 @@ client.on("guildCreate", async (gData) => {
               "-Try `ac!help` to see all my commands\n-Prefix: `ac!`"
             )
             .setTimestamp()
-            .setFooter(client.user.username, client.user.displayAvatarURL())
+            .setFooter({
+              text: client.user.username,
+              iconURL: client.user.displayAvatarURL(),
+            })
         );
       }
     })
     .catch(console.error);
+  // Slash Command
+  for (const command of SlashCmd) {
+    client.application.commands.create(command, gData.id);
+  }
 });
 
 client.on("guildDelete", async (gData) => {
   db.collection("guilds").doc(gData.id).update({
     ConnLost: Date.now(),
   });
+  for (const command of SlashCmd) {
+    client.application.commands.delete(command, gData.id);
+  }
   console.log(
     `Connection Lost with ${gData.name} guild (GuildID: ${gData.id})`
   );
 });
 
-client.on("message", (message) => {
+client.on("messageCreate", (message) => {
   const prefix = "ac!";
   const args = message.content.slice(prefix.length).trim().split(/ +/g);
   const cmd = args.shift().toLowerCase();
@@ -349,11 +346,12 @@ client.on("message", (message) => {
     // DM
     if (message.author.bot) return;
     if (cmd === "invite")
-      return message.reply(
-        `Hello ${message.author.username} 🖐\n Here you invite url: https://discord.com/api/oauth2/authorize?client_id=831828766245912596&permissions=8&scope=bot%20applications.commands \n`
-      );
+      return message.reply({
+        content: `Hello ${message.author.username} 🖐\nHere you invite url: https://discord.com/api/oauth2/authorize?client_id=831828766245912596&permissions=8&scope=bot%20applications.commands \n`,
+      });
     return;
   }
+
   /* Features */
   const guild = message.guild.id,
     channel = message.channel.id,
@@ -380,29 +378,30 @@ client.on("message", (message) => {
       (ch) => ch.name === "music-cmd"
     );
     message
-      .reply(
-        `❌ Mauvais Salon ❌\nLe salon pour les commandes du BOT music est <#${channelMusic.id}>`
-      )
+      .reply({
+        content: `❌ Mauvais Salon ❌\nLe salon pour les commandes du BOT music est <#${channelMusic.id}>`,
+      })
       .then((m) => {
-        m.delete({ timeout: 15000 });
+        setTimeout(() => m.delete(), 15000);
       });
   }
 
   // Cmd
   if (!message.content.startsWith(prefix)) return;
   if (cmd === "time") {
-    if (message.deletable) message.delete({ timeout: 10000 });
+    if (message.deletable) setTimeout(() => message.delete(), 5000);
+
     return message
-      .reply("Fonctionnalité désactivé pour le moment")
-      .then((m) => m.delete({ timeout: 5000 }));
+      .reply({ content: "Fonctionnalité désactivé pour le moment" })
+      .then((m) => setTimeout(() => m.delete(), 5000));
   } else if (cmd === "invite") {
-    if (message.deletable) message.delete({ timeout: 10000 });
+    if (message.deletable) setTimeout(() => message.delete(), 10000);
     if (!message.author.bot)
-      message.author.send(
-        `Hello ${message.author.username} 🖐\n Here you invite url: https://discord.com/api/oauth2/authorize?client_id=831828766245912596&permissions=8&scope=bot%20applications.commands \n`
-      );
+      message.author.send({
+        content: `Hello ${message.author.username} 🖐\nHere you invite url: https://discord.com/api/oauth2/authorize?client_id=831828766245912596&permissions=8&scope=bot%20applications.commands \n`,
+      });
   } else if (cmd === "help") {
-    if (message.deletable) message.delete({ timeout: 10000 });
+    if (message.deletable) setTimeout(() => message.delete(), 10000);
     const Embed = new MessageEmbed()
       .setColor(0xffc300)
       .setTitle("**How to use AutoCleaner ? | ac!help**")
@@ -410,22 +409,28 @@ client.on("message", (message) => {
         `- __prefix:__ ${prefix}\n- **${prefix}help**\n=> See all my commands\n- **${prefix}invite**\n=>- Url for adding this bot into your server\n- **${prefix}ping**\n=>- Returns your ping (in ms)`
       )
       .setTimestamp()
-      .setAuthor(message.author.username, message.author.displayAvatarURL())
-      .setFooter(client.user.username, client.user.displayAvatarURL());
+      .setAuthor({
+        name: message.author.username,
+        iconURL: message.author.displayAvatarURL(),
+      })
+      .setFooter({
+        text: client.user.username,
+        iconURL: client.user.displayAvatarURL(),
+      });
 
-    return message.reply(Embed);
+    return message.reply({ embeds: [Embed] });
   } else if (cmd === "ping") {
-    if (message.deletable) message.delete({ timeout: 5000 });
+    if (message.deletable) setTimeout(() => message.delete(), 5000);
     const Embed = new MessageEmbed()
       .setColor(0xffc300)
       .setTitle(`🏓 ${message.author.username}'s ping`)
       .addField("⏳__You:__", `**${Date.now() - message.createdTimestamp}**ms`)
       .addField("⏱__BOT__", `*${Math.round(client.ws.ping)}*ms`);
-    message.channel.send(Embed);
+    message.channel.send({ embeds: [Embed] });
   } else {
     return message
-      .reply(`❌ this command does not exist, try **ac!help**`)
-      .then((m) => m.delete({ timeout: 5000 }));
+      .reply({ content: `❌ this command does not exist, try **ac!help**` })
+      .then((m) => setTimeout(() => m.delete(), 5000));
   }
 });
 
@@ -433,11 +438,16 @@ client.on("messageDelete", (message) => {
   const guild = message.guild.id,
     channel = message.channel.id,
     MessageID = message.id;
+
   if (message.attachments.size > 0) {
     UserDeleteImg(guild, channel, MessageID);
   } else {
     CheckMsgImg(guild);
   }
 });
+
+client.on("channelDelete", (channel) =>
+  deleteAllChannelImage(channel.guild.id, channel.id)
+);
 
 client.login(process.env.TOKEN);
