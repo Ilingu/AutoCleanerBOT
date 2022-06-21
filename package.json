@@ -12,7 +12,7 @@
   "keywords": [
     "BOT"
   ],
-  "author": "Chollet Arthur",
+  "author": "Ilingu",
   "license": "ISC",
   "dependencies": {
     "discord.js": "^12.5.3",
